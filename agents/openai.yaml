@@ -1,0 +1,7 @@
+interface:
+  display_name: "新北 IEP 審查"
+  short_description: "審查新北市 SEE 系統 IEP，整理補正意見並輸出 Word 文件。"
+  default_prompt: "Use $ntpc-iep-review to read the current student's IEP, identify concise correction opinions, update the review summary, and export a Word review document when requested."
+
+policy:
+  allow_implicit_invocation: true

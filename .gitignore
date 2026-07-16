@@ -1,0 +1,7 @@
+﻿*.docx
+*.pdf
+*.png
+*.tmp
+__pycache__/
+.DS_Store
+Thumbs.db
