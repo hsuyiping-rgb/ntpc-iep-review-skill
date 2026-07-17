@@ -84,3 +84,17 @@ The final review should include:
 - 可貼入系統的審查意見, only when useful
 
 Keep comments direct and school-administration friendly. Avoid overloading the document with raw copied IEP data.
+
+## Logic Alignment Check
+
+When reviewing an IEP, do not only check whether required fields are filled. Always check whether these three sections form a coherent logic chain:
+
+1. Ability/current-status, family situation, and needs assessment.
+2. Special education, related services, and support strategies.
+3. Annual and semester education goals.
+
+If the ability/current-status section describes needs in cognition and intelligence, health and sensory, perception and motor, language and communication, self-care, emotion and social interaction, or basic learning skills and subject performance, the later support strategies and annual/semester goals should include corresponding planning.
+
+Treat it as a correction when an identified need has no matching support/service, annual goal, semester goal, evaluation method, or instructional plan. The review should trace the IEP chain as:
+
+Need -> Support/service -> Annual goal -> Semester goal/evaluation.
