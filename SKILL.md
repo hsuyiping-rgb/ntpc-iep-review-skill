@@ -19,7 +19,7 @@ Use this skill to review one student's New Taipei City IEP in the online SEE app
    - Prefer direct UI/browser operation to click IEP section tabs and controls yourself. Use screenshots, accessibility/UI automation, browser control, or Computer Use when available.
    - Prefer copying visible page text with `Ctrl+A` / `Ctrl+C` after each IEP tab is selected.
    - Ask the user to manually click the next tab only after direct UI operation fails or risks changing approval state.
-   - Save copied text for traceability:
+   - Save copied text for traceability. **The `00基本資料` capture is not optional** — it is the source of truth for grade, class, teacher, and guardian fields that every other section's narrative gets cross-checked against. Skipping it and relying on a remembered value has produced a real false-positive correction in production (a "grade level doesn't match the narrative" finding that turned out to be based on a value nobody had actually captured). Capture all seven files every time:
      - `99_輸出/<student>_00基本資料_頁面文字.txt`
      - `99_輸出/<student>_01能力現況需求評估_頁面文字.txt`
      - `99_輸出/<student>_02特殊教育相關服務支持策略_頁面文字.txt`
@@ -42,6 +42,8 @@ Use this skill to review one student's New Taipei City IEP in the online SEE app
    - Do not treat system-inserted placeholder text as a correction if the user says it is built into the system.
    - Do not flag `授課教師：待定` when the timing makes teacher assignment unavailable.
    - Distinguish true correction items from optional reminders or future confirmations.
+   - Before writing any finding that claims two sections disagree, follow the Verification Requirement in `references/review-rules.md`: confirm both sides against the actual saved capture files from this same review, not from memory of an earlier pass. If the user disputes a finding later, re-open the original capture first — don't reflexively retract, and don't defend without checking.
+   - Write every finding — not only the correction list — in the confirming/inquiring tone described in `references/review-rules.md`, since these are read directly by the teacher who wrote the IEP.
 
 5. **Write the review conclusion**
    - Use `補正後再核准` when the IEP is substantively complete but has specific text or consistency corrections.
@@ -83,7 +85,7 @@ The final review should include:
 - 可保留內容
 - 可貼入系統的審查意見, only when useful
 
-Keep comments direct and school-administration friendly. Avoid overloading the document with raw copied IEP data.
+Keep comments clear, respectful, and school-administration friendly (see Opinion Tone in `references/review-rules.md`). Avoid overloading the document with raw copied IEP data.
 
 ## Logic Alignment Check
 
