@@ -27,6 +27,7 @@ Use this skill to review one student's New Taipei City IEP in the online SEE app
      - `99_輸出/<student>_04行為功能介入方案_頁面文字.txt`
      - `99_輸出/<student>_05轉銜輔導及服務內容_頁面文字.txt`
      - `99_輸出/<student>_06相關測驗_頁面文字.txt`
+   - **The `1-1.普通班學生接受特殊教育課程` course-hours table needs its own deliberate capture, separate from the section-02 text dump.** It loads by AJAX after the tab renders, so a single early read routinely returns a transient empty/`0` state — this produced 16 false "課程節數為 0" corrections in one batch, every one of which had to be retracted. Confirm which `1.特殊教育課程` radio is selected, expand the table, read it a second time once other tables on the same tab show real rows, and save the capture. Do not write any course-hours finding without it; see the Verification Requirement in `references/review-rules.md`.
 
 3. **Review required sections**
    - 學生基本資料 and 參與訂定人員
@@ -42,6 +43,7 @@ Use this skill to review one student's New Taipei City IEP in the online SEE app
    - Do not treat system-inserted placeholder text as a correction if the user says it is built into the system.
    - Do not flag `授課教師：待定` when the timing makes teacher assignment unavailable.
    - Distinguish true correction items from optional reminders or future confirmations.
+   - Never report 特殊教育課程節數 as `0` — or as inconsistent with the needs summary — until the capture from step 2 confirms it. When the table does hold real hours, read 抽離 vs 外加 from the 特教課程使用時間 columns (see `references/review-rules.md`) before judging whether it matches the narrative, and record a match in 可保留內容 rather than staying silent.
    - Before writing any finding that claims two sections disagree, follow the Verification Requirement in `references/review-rules.md`: confirm both sides against the actual saved capture files from this same review, not from memory of an earlier pass. If the user disputes a finding later, re-open the original capture first — don't reflexively retract, and don't defend without checking.
    - Write every finding — not only the correction list — in the confirming/inquiring tone described in `references/review-rules.md`, since these are read directly by the teacher who wrote the IEP.
 
