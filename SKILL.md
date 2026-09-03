@@ -39,13 +39,15 @@ Use this skill to review one student's New Taipei City IEP in the online SEE app
    - 相關測驗
 
 4. **Apply review rules**
-   - Read `references/review-rules.md` before finalizing comments.
+   - Read `references/review-rules.md` before finalizing comments — Part 1 is the per-section content checklist (what "complete" looks like for each of the 7 IEP sections), Part 2 is the decision/verification/tone rules (when and how to turn an observation into a finding).
    - Do not treat system-inserted placeholder text as a correction if the user says it is built into the system.
    - Do not flag `授課教師：待定` when the timing makes teacher assignment unavailable.
    - Distinguish true correction items from optional reminders or future confirmations.
-   - Never report 特殊教育課程節數 as `0` — or as inconsistent with the needs summary — until the capture from step 2 confirms it. When the table does hold real hours, read 抽離 vs 外加 from the 特教課程使用時間 columns (see `references/review-rules.md`) before judging whether it matches the narrative, and record a match in 可保留內容 rather than staying silent.
-   - Before writing any finding that claims two sections disagree, follow the Verification Requirement in `references/review-rules.md`: confirm both sides against the actual saved capture files from this same review, not from memory of an earlier pass. If the user disputes a finding later, re-open the original capture first — don't reflexively retract, and don't defend without checking.
-   - Write every finding — not only the correction list — in the confirming/inquiring tone described in `references/review-rules.md`, since these are read directly by the teacher who wrote the IEP.
+   - Never report 特殊教育課程節數 as `0` — or as inconsistent with the needs summary — until the capture from step 2 confirms it. When the table does hold real hours, read 抽離 vs 外加 from the 特教課程使用時間 columns (Part 2) before judging whether it matches the narrative, and record a match in 可保留內容 rather than staying silent.
+   - Before writing any finding that claims two sections disagree, follow the Verification Requirement in Part 2: confirm both sides against the actual saved capture files from this same review, not from memory of an earlier pass. If the user disputes a finding later, re-open the original capture first — don't reflexively retract, and don't defend without checking.
+   - When goals/transition text look identical across two students, verify by opening the other student's section directly (Part 1's copy-paste check), then judge whether the *content* even fits this student's disability category (Part 2's differentiation table) — a duplicate that happens to also be the wrong category of goal is the stronger finding.
+   - Apply the Logic Alignment Check (Part 2): trace every Section 1 need through Section 2/3/4 and flag gaps in the chain, not just blank fields.
+   - Write every finding — not only the correction list — in the confirming/inquiring tone described in Part 2, since these are read directly by the teacher who wrote the IEP.
 
 5. **Write the review conclusion**
    - Use `補正後再核准` when the IEP is substantively complete but has specific text or consistency corrections.
@@ -91,14 +93,4 @@ Keep comments clear, respectful, and school-administration friendly (see Opinion
 
 ## Logic Alignment Check
 
-When reviewing an IEP, do not only check whether required fields are filled. Always check whether these three sections form a coherent logic chain:
-
-1. Ability/current-status, family situation, and needs assessment.
-2. Special education, related services, and support strategies.
-3. Annual and semester education goals.
-
-If the ability/current-status section describes needs in cognition and intelligence, health and sensory, perception and motor, language and communication, self-care, emotion and social interaction, or basic learning skills and subject performance, the later support strategies and annual/semester goals should include corresponding planning.
-
-Treat it as a correction when an identified need has no matching support/service, annual goal, semester goal, evaluation method, or instructional plan. The review should trace the IEP chain as:
-
-Need -> Support/service -> Annual goal -> Semester goal/evaluation.
+See "Logic Alignment Check" and the per-section checklist in `references/review-rules.md` Part 1/Part 2 — the full content standard (what each of the 7 sections must contain, and how a need in Section 1 must trace through Section 2/3/4) lives there, not here, to avoid the two files drifting out of sync.
