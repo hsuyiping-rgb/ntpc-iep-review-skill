@@ -1,34 +1,126 @@
 # ntpc-iep-review skill
 
-Codex skill for reviewing New Taipei City SEE system IEP records and producing concise correction opinions.
+新北市特教通報網（SEE）IEP 線上審查技能：由校長或審查者逐區段閱讀學生 IEP，依新北市 IEP 格式規定與校內審查標準產出「可直接貼入系統」的補正意見，並追蹤補正、複核與系統簽核。
 
-## Contents
+Codex / Claude Code skill for reviewing New Taipei City SEE system IEP records and producing concise correction opinions.
 
-- `SKILL.md`: workflow and usage instructions
-- `references/review-rules.md`: **the full review standard** — a per-section content checklist plus decision/verification/tone rules (see summary below)
-- `scripts/create_review_docx.py`: helper for generating Word review documents
-- `agents/openai.yaml`: skill metadata
+## 檔案內容
 
-## Review Standards Summary
+- `SKILL.md`：Agent 執行流程與使用說明（英文，給 Agent 讀）
+- `references/review-rules.md`：**完整審查標準**，分兩部分：各區段內容檢核清單、判斷／查證／語氣規則
+- `scripts/create_review_docx.py`：產生 Word 審查意見書的輔助腳本
+- `agents/openai.yaml`：技能中繼資料
 
-The full standard lives in `references/review-rules.md`. It has two parts:
+本 README 是給人看的中文總覽；細部規則以 `references/review-rules.md` 為準，兩者衝突時以 rules 為準。
 
-**Part 1 — per-section content checklist.** For each of the 7 required IEP sections (基本資料, 能力現況/需求評估, 特殊教育與支持策略, 學年學期教育目標, 行為功能介入方案, 轉銜輔導, 相關測驗), it defines what "complete" looks like — e.g. the 能力現況 section needs current-status + need for all seven ability dimensions, 課程節數 must match the 需求評估摘要's 抽離/外加 model, every priority need in Section 1 must map to a goal in Section 3, transition planning needs distinct (non-templated) text across its five service areas, and so on. The core discipline running through it is the **Logic Alignment Check**: Need (Section 1) → Support/service (Section 2) → Annual goal (Section 3) → Semester goal/evaluation — a need with nothing downstream is a correction even if every field is technically "filled."
+---
 
-**Part 2 — decision, verification, and tone rules.** Key points, learned the hard way across real review batches:
+## 一、審查工作程序
 
-- **Verify before asserting.** Every "these two sections disagree" claim must trace to an actual saved capture of both sides, not a remembered summary. When a user disputes a finding, re-check the original capture first — the outcome differs depending on whether the finding was never backed by evidence (retract), was true when made and has since been fixed by the case manager (mark resolved, don't apologize), or still holds (restate with evidence).
-- **Course-hours reads of "0" are unreliable by default.** The course table loads by AJAX after the tab renders; an early read routinely returns a false `0`. One batch produced 16 false "課程節數為 0" corrections from this alone. A four-step verification procedure (radio state → expand table → second read → cross-check against 抽離/外加 narrative) is mandatory before citing any course-hours number.
-- **Read a checkbox's own qualifying text, not just its label.** A field like 電腦輔具 can carry a printed scope condition ("學生無法以手寫...") narrower than what its label suggests — a narrative mentioning a related device doesn't automatically mean the box should be checked.
-- **身心障礙證明 and 特教資格鑑定 are independent systems.** A confirmed disability category with no disability certificate is normal, not an error — only flag it if the ability-status narrative itself claims the student already holds one.
-- **Differentiate goals by disability category, not just by whether the text differs from another student's.** Two students with different categories (e.g. reading-comprehension SLD vs. autism) should have qualitatively different priority goals; a goal set that's well-written for one category can still be the wrong content for another.
-- **Tone.** Every finding is phrased as a respectful confirmation request to the case manager who wrote the IEP (`提請確認...`), never a flat assertion of error (`...不一致，請修正`) — even for findings the reviewer is fairly confident about.
+整體分成四個階段：**初審 → 送出意見（核准／退回）→ 複核 → 彙整同步**。
 
-## Privacy note
+### 1. 準備
+
+1. 在工作區建立 `99_輸出/`（每位學生一個子資料夾 `99_輸出/<學生>/`），彙整表放 `99_輸出/IEP審查彙整表.csv`。
+2. 由**使用者本人**在瀏覽器登入 SEE，停在身分選擇頁；Agent 再切換到審查身分、進入 IEP 簽核清單。Agent 不代為輸入帳密。
+3. 讀取簽核清單，判斷每位學生目前狀態：
+   - 頁面上的進度步驟（`ol.steps li.active`）顯示目前停在哪一關；
+   - 有「核准／退回」選項者，才是**目前待審查者處理**的案件；
+   - 顯示「-」代表已核准完成；
+   - 三個數字欄依序為期初／期末／期中會議數（一年級新生通常落在期中修正欄）。
+
+### 2. 初審（逐區段讀取＋存證）
+
+1. 逐一開啟七個區段，**每個區段都存一份頁面文字檔**作為證據：
+   - `00基本資料`（必存，是年級、班級、導師、法定代理人的比對基準）
+   - `01能力現況需求評估`
+   - `02特殊教育相關服務支持策略`
+   - `03學年與學期教育目標`
+   - `04行為功能介入方案`
+   - `05轉銜輔導及服務內容`
+   - `06相關測驗`
+2. **課程節數表要單獨存證**：`1-1 普通班學生接受特殊教育課程` 由 AJAX 延遲載入，太早讀會得到假的「0 節」。先確認 `1.特殊教育課程` 選的是哪一個選項、展開表格、等同頁其他表格有實際資料後再讀第二次。
+3. **長文欄位要等載入完成**：能力現況等長文先放在隱藏欄位、再由前端腳本渲染，開啟明細後約需等 2.5 秒，讀太早會得到整段空白。
+4. 依第二節「審查重點」逐區段檢核，寫成 `<學生>_IEP審查初讀紀錄.md`，結構為：
+   - 基本資料摘要
+   - 各區段「摘要／檢核判斷／建議留意」
+   - 總審查結論：建議結果、主要補正事項、可保留內容、**可貼入系統的審查意見**
+
+### 3. 送出意見（核准或退回）
+
+1. 列出本批「建議核准」與「建議退回」名單，**交給使用者確認後**才在系統送出。
+2. 核准：無實質補正事項者。
+3. 退回（結論為「補正後再核准」）：把初讀紀錄中「可貼入系統的審查意見」段落貼入退回意見欄。
+4. 使用者需要書面版本時，用 `scripts/create_review_docx.py` 產出 `<學生>_IEP審查意見.docx`，並檢查中文沒有亂碼、版面沒有裁切。
+
+### 4. 複核（退回者重送後）
+
+1. 從簽核清單找出重送回到審查者這一關的學生。
+2. 重新讀取該生 IEP，**逐條對照初讀紀錄的補正事項**，判斷已補正、部分補正或未補正。
+3. 將當次系統頁面文字存成 `<學生>_<學年>複核_系統頁面文字_<日期>.txt` 作為補正存證。
+4. 同樣先列名單給使用者確認，再於系統核准或再次退回。
+
+### 5. 彙整同步
+
+1. 更新 `IEP審查彙整表.csv`：狀態、待補正重點、初審日期、複審日期、複審結果、系統核准日期。
+2. 每批作業結束後，確認彙整表與系統簽核清單**逐筆一致**（筆數、核准／退回狀態）。
+3. CSV 一律存成**無 BOM 的 UTF-8**（PowerShell `Export-Csv -Encoding utf8` 會加 BOM，寫完需再以無 BOM 重寫）。
+
+---
+
+## 二、審查重點
+
+### 核心：邏輯一致性檢核
+
+不只看欄位有沒有填，而是看整份 IEP 是否串成一條線：
+
+**需求（第一區）→ 支持／服務（第二區）→ 學年目標（第三區）→ 學期目標與評量**
+
+第一區七大向度中列出的需求，若在後續區段找不到對應的支持策略、目標或評量方式，即使每個欄位都「有填」，仍列為補正。
+
+### 各區段檢核要點
+
+| 區段 | 重點 |
+|---|---|
+| 基本資料／參與訂定人員 | 年級、班級、導師、法定代理人與各區段敘述一致；鑑定文號、特教類別合理；參與人員須含法定代理人、個管教師及相關教師／專業人員 |
+| 一、能力現況與需求評估 | 七向度（健康與感官、知覺動作、認知、溝通、生活自理、情緒與人際、學習表現）皆有現況與需求；測驗資料具體（名稱、日期、分數）；需求評估摘要要具體到能追到第二、三區；安全相關行為必須追到第二、四區 |
+| 二、特教與支持策略 | 課程節數與抽離／外加模式要與需求評估一致；相關專業服務要有人員與頻率；已實際使用過的考試服務（報讀、延長時間等）要登錄；健康與情緒行為風險要有對應處理 |
+| 三、學年與學期目標 | 每個優先需求至少對應一個目標；目標可觀察、可評量；評量者、方式、日期完整且落在本學年；留意與他生雷同（複製貼上）以及目標內容是否符合該生障礙類別 |
+| 四、行為功能介入方案 | 第一、二區記載自傷、攻擊、離座逃跑等安全行為時，「無此需求」需提請確認；已有方案者要涵蓋所有記載的風險行為 |
+| 五、轉銜輔導 | 僅小六、國九、高三必填；各服務項目要具體且彼此不同，不可套用範本 |
+| 相關測驗 | 分頁只有標題列但第一區已有完整測驗資料時，不列補正 |
+
+### 判斷原則（避免誤判）
+
+- **先存證、再下結論**：任何「兩處不一致」的意見，兩邊都要能對到本次實際存下的頁面文字，不能憑記憶。
+- **「0 節」預設不可信**：未完成課程節數四步驟查證（選項、展開、二次讀取、對照敘述）前，不寫任何節數相關意見。
+- **讀勾選欄位自己的適用條件**：例如電腦輔具欄註明「學生無法以手寫或一般鍵盤滑鼠輸入者」，不能只看標籤名稱就判定漏勾。
+- **身心障礙證明與特教鑑定是兩套制度**：已鑑定特教類別但證明欄為「無」屬正常；只有能力現況自己寫「已領有證明」而欄位為「無」時才提請確認。
+- **目標要依障礙類別區辨**：閱讀理解型學障與自閉症的優先目標性質不同；寫得再好，類別不對仍需提請確認。
+- **通常不列補正**：排課未定前的「授課教師：待定」、系統內建的預設文字、非轉銜年級的轉銜空白、輕度逃避／焦慮／注意力問題已由學習支持處理而無 BFP。
+- **意見被質疑時先回頭查原始存證**：查無實據 → 撤回；當時正確、教師已修正 → 標為已補正；仍成立 → 附證據重述。退回後已被修改的紀錄無法回溯查證，應註明「記錄已變動」。
+
+### 意見語氣與結構
+
+- 意見由撰寫 IEP 的教師直接閱讀，一律用**提請確認、請補明**的語氣，不寫成「錯誤，請修正」。
+  - 建議：`請補明評量方式及觀察期間，使 115 學年度第 1 學期目標可具體評量。`
+  - 避免：`內容不夠完整。`
+- 主要補正意見用編號條列的短句，可直接貼入系統。
+- 區分三類：
+  - **主要補正意見**：核准前必須修正
+  - **可保留內容**：每次都要寫，肯定教師已做好的部分
+  - **提醒事項**：有幫助但不影響核准
+- 最終摘要不重複完整身分證號等個資。
+
+---
+
+## 隱私說明
+
+本 repository 只放可重複使用的技能本身。學生 IEP 內容、審查輸出、截圖與任何個資都不放在這裡，一律留在本機工作區。
 
 This repository contains only the reusable skill. Student IEP records, review outputs, screenshots, and personal data are intentionally excluded.
 
-## Basic DOCX test
+## DOCX 基本測試
 
 ```powershell
 $py = "C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
